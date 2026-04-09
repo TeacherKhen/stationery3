@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONSTER BINGO GAME - SOUND EFFECTS</title>
+    <style>
+        :root {
+            --team-a: #3498db;
+            --team-b: #9b59b6;
+            --glow-green: #2ecc71;
+            --monster-red: #ff4757;
+            --neon-blue: #00ffff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            margin: 0;
+            padding: 10px;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: #000; 
+            background-image: url('background4.gif'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .music-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid var(--neon-blue);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .music-btn {
+            background: var(--neon-blue);
+            color: #000;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #start-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #start-overlay button {
+            padding: 25px 60px;
+            font-size: 2rem;
+            background: var(--glow-green);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--glow-green);
+        }
+
+        h1 { 
+            color: white; 
+            font-size: 3rem; 
+            margin: 10px 0; 
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+        }
+
+        .container { 
+            display: flex; 
+            gap: 20px; 
+            width: 95%; 
+            max-width: 1300px; 
+            height: 78vh; 
+            z-index: 10;
+        }
+
+        .board {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 25px;
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 4px solid #fff;
+        }
+
+        .status-bar {
+            background: #111;
+            color: #fff;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+            border: 1px solid var(--neon-blue);
+        }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
+            flex-grow: 1;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .card.checked { transform: rotateY(180deg); border: 4px solid var(--glow-green); }
+        .card.monster-hit { transform: rotateY(180deg); background: var(--monster-red) !important; animation: shake 0.5s; }
+
+        .card-front, .card-back {
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .card-back { transform: rotateY(180deg); background: #fff; }
+        .card-back img { max-width: 85%; max-height: 85%; object-fit: contain; }
+
+        @keyframes shake {
+            0%, 100% { transform: scale(1) rotateY(180deg); }
+            25% { transform: scale(1.1) rotate(5deg) rotateY(180deg); }
+            75% { transform: scale(1.1) rotate(-5deg) rotateY(180deg); }
+        }
+
+        #win-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            color: #f1c40f;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <button onclick="startGame()">START GAME & MUSIC</button>
+    </div>
+
+    <div class="music-controls">
+        <button id="musicToggle" class="music-btn">Music: ON</button>
+        <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="music1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <h1>MONSTER BINGO GAME</h1>
+
+    <div class="container">
+        <div class="board" id="board-a">
+            <h2 style="color: var(--team-a); text-align: center;">TEAM A</h2>
+            <div class="status-bar"><span>Score: <b id="pts-a">0</b>/5</span></div>
+            <div class="grid" id="grid-a"></div>
+        </div>
+
+        <div class="board" id="board-b">
+            <h2 style="color: var(--team-b); text-align: center;">TEAM B</h2>
+            <div class="status-bar"><span>Score: <b id="pts-b">0</b>/5</span></div>
+            <div class="grid" id="grid-b"></div>
+        </div>
+    </div>
+
+    <div id="win-screen">
+        <h2 id="winner-text" style="font-size: 5rem; margin: 0;"></h2>
+        <button style="padding: 15px 40px; font-size: 1.5rem; cursor:pointer;" onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        const music = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicToggle');
+        const vol = document.getElementById('volumeControl');
+
+        // --- NEW SOUND EFFECT ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playEffect(frequency, type, duration) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        function playMonsterSound() {
+            playEffect(150, 'sawtooth', 0.5); // Gritty low sound
+        }
+
+        function playWinSound() {
+            // Rising fanfare notes
+            playEffect(523.25, 'sine', 0.2); // C5
+            setTimeout(() => playEffect(659.25, 'sine', 0.2), 150); // E5
+            setTimeout(() => playEffect(783.99, 'sine', 0.4), 300); // G5
+        }
+
+        function playClickSound() {
+            playEffect(800, 'sine', 0.1); // Short blip
+        }
+
+        // --- REST OF THE GAME LOGIC ---
+
+        function startGame() {
+            document.getElementById('start-overlay').style.display = 'none';
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            music.play().catch(e => console.log("Audio play blocked"));
+        }
+
+        musicBtn.addEventListener('click', () => {
+            if (music.paused) {
+                music.play();
+                musicBtn.innerText = "Music: ON";
+            } else {
+                music.pause();
+                musicBtn.innerText = "Music: OFF";
+            }
+        });
+
+        vol.addEventListener('input', (e) => { music.volume = e.target.value; });
+
+        const stationery = [
+            {img: "marker.png"}, {img: "pencil.png"}, {img: "book.png"},
+            {img: "eraser.png"}, {img: "glue.png"}, {img: "scissors.png"},
+            {img: "crayon.png"}, {img: "pen.png"}, {img: "ruler.png"}
+        ];
+
+        let scores = { a: 0, b: 0 };
+
+        function createBoard(team) {
+            const grid = document.getElementById(`grid-${team}`);
+            grid.innerHTML = "";
+            const shuffled = [...stationery].sort(() => Math.random() - 0.5);
+            const monsterIdx = Math.floor(Math.random() * 9);
+
+            shuffled.forEach((item, i) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<div class="card-front">${i + 1}</div><div class="card-back"><img src="${item.img}"></div>`;
+                
+                card.onclick = () => {
+                    if (i === monsterIdx) {
+                        playMonsterSound(); // Play sound!
+                        card.classList.add('monster-hit');
+                        card.querySelector('.card-back').innerHTML = "👾";
+                        setTimeout(() => { 
+                            scores[team] = 0; 
+                            document.getElementById(`pts-${team}`).innerText = 0; 
+                            createBoard(team); 
+                        }, 1000);
+                    } else {
+                        if(!card.classList.contains('checked')) {
+                            playClickSound(); // Play sound!
+                            card.classList.add('checked');
+                            scores[team]++;
+                            document.getElementById(`pts-${team}`).innerText = scores[team];
+                            if (scores[team] >= 5) {
+                                playWinSound(); // Play sound!
+                                document.getElementById('win-screen').style.display = 'flex';
+                                document.getElementById('winner-text').innerText = `TEAM ${team.toUpperCase()} WINS!`;
+                            }
+                        }
+                    }
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        createBoard('a');
+        createBoard('b');
+    </script>
+</body>
+</html>
